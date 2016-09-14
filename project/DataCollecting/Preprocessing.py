@@ -31,5 +31,6 @@ def get_chemspider_links():
     pass
 
 
-load_data('data/database_raw02.json')
-count_keys()
+if __name__ == '__main__':
+    load_data('data/database_raw02.json')
+    count_keys()
