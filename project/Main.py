@@ -1,10 +1,6 @@
-from project.DataCollecting import DataCollecting, Wikipedia, PubChem
+from project.DataCollecting import Wikipedia, PubChem
 from project import Paths
-from threading import Thread
-from time import sleep
-import json
 import os
-import random
 import shutil
 
 
@@ -61,16 +57,13 @@ if __name__ == '__main__':
         Wikipedia.parse_all_pages()
         print('Finished page parsing.')
 
-    print('Starting collecting PubChem data.')
-    PubChem.collect_pubchem_data()
-    print('Finished collecting PubChem data. Data os stored in ' + Paths.FN_PUBCHEM_DATABASE_RAW)
+        print('Starting collecting PubChem data.')
+        PubChem.collect_pubchem_data()
+        print('Finished collecting PubChem data. Data os stored in ' + Paths.FN_PUBCHEM_DATABASE_RAW)
 
+    # create final database. This is a dict with smiles as keys.
 
-    def plz_dont():
-        pubchem_id_data = DataCollecting.get_pubchem_ids_from_file()
-        pubchem_ids = list()
-        for ids in pubchem_id_data.values():
-            pubchem_ids.extend(ids)
-        DataCollecting.collect_pubchem_data(pubchem_ids)
+    # parse temperatures from both databases
 
+    # merge stuff
 
