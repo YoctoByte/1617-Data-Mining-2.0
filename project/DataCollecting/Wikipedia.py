@@ -2,6 +2,7 @@ from project.DataCollecting import HTMLParser
 from project import Paths
 from threading import Thread
 from time import sleep
+import json
 import os
 import requests
 
@@ -20,43 +21,20 @@ def collect_pages():
     wikicollector.run()
 
 
-def get_urls_from_wiki_tables(attribute):
-    for filename in os.listdir(Paths.DIR_WIKI_PAGES):
-        wiki_page = WikipediaPage(filename=filename)
-        info_table = wiki_page.get_molecule_table()
-        for row in info_table:
-            urls = list()
-            row.remove('sup')
-            if len(row) == 2:
-                if str(row[0]).lower() == attribute:
-                    a_list = row[1].get_elements(name='a')
-                    for a in a_list:
-                        if 'href' in a.attributes:
-                            urls.append(a.attributes['href'])
-                    yield filename.rsplit('/', 1)[-1][0:-5], urls
-                    continue
-
-
-def collect_chemspider_urls(verbose=True):
-    with open(Paths.FN_CHEMSPIDER_URLS, 'w') as file:
-        for molecule, urls in get_urls_from_wiki_tables('chemspider'):
-            molecule_string = molecule.replace(',', '')
-            for url in urls:
-                molecule_string += ', ' + url.replace(',', '')
-            file.write(molecule_string+'\n')
-            if verbose:
-                print(molecule_string)
-
-
-def collect_pubchem_urls(verbose=True):
-    with open(Paths.FN_PUBCHEM_URLS, 'w') as file:
-        for molecule, urls in get_urls_from_wiki_tables('pubchem'):
-            molecule_string = molecule.replace(',', '')
-            for url in urls:
-                molecule_string += ', ' + url.replace(',', '')
-            file.write(molecule_string+'\n')
-            if verbose:
-                print(molecule_string)
+def parse_all_pages(verbose=True):
+    database = dict()
+    for html_file in os.listdir(Paths.DIR_WIKI_PAGES):
+        if verbose:
+            print(html_file + ' is being parsed.')
+        wiki_page = WikipediaPage(filename=Paths.DIR_WIKI_PAGES + html_file)
+        data_table = wiki_page.get_molecule_table()
+        molecule_name = html_file.rsplit('.html', 1)[0]
+        molecule_data = dict()
+        for attr, value in _parse_info_table(data_table):
+            molecule_data[attr] = value
+        database[molecule_name] = molecule_data
+    with open(Paths.FN_WIKI_DATABASE_RAW, 'w') as json_file:
+        json_file.write(json.dumps(database, separators=(',', ':'), sort_keys=True, indent=4))
 
 
 def _parse_info_table(info_table):

@@ -2,6 +2,15 @@ import numpy as np
 from math import pi
 from packages import xlrd
 import matplotlib.pyplot as plt
+from scipy.io import loadmat
+from similarity import similarity
+
+
+"""
+IMPORTANT NOTE: this assignment is written for python3, but seems to work with python2 too.
+
+David van 't Wout - S4430697
+"""
 
 
 def ass1_1_1():
@@ -108,15 +117,6 @@ def ass1_2_1():
 def ass1_2_2():
     print('assignment 1.2.2')
 
-    def pca(matrix):
-        mu = np.mean(matrix, axis=0)
-        zero_mean_data = matrix - (mu * np.ones((matrix.shape[0], 1)))
-        u, s, v = np.linalg.svd(zero_mean_data)
-        print(u.shape, s.shape, v.shape)
-        print(s)
-        for _ in range(matrix.shape[1]):
-            pass
-
     filename = 'data/nanonose.xls'
     workbook = xlrd.open_workbook(filename)
     sheet = workbook.sheet_by_index(0)
@@ -125,20 +125,68 @@ def ass1_2_2():
         col = sheet.col_values(col_nr + 3)[2:]
         x[:, col_nr] = col
 
-    pca(x)
-    # todo: Ask student assistant about PCA
+    # c.
+    mu = np.mean(x, axis=0)
+    zero_mean_data = x - (mu * np.ones((x.shape[0], 1)))
+    u, s, vt = np.linalg.svd(zero_mean_data)
+    v = vt.T
+    sum_s = sum([sv*sv for sv in s])
+    variance = list()
+    for i, singular_value in enumerate(s):
+        variance.append(singular_value*singular_value/sum_s*100)
+    plt.bar(np.arange(len(variance)), variance)
+    plt.show()
 
+    print('Variance first three pc =', sum(variance[:3]))
 
-def ass1_3_1():
-    pass
+    # d.
+    projection = np.dot(zero_mean_data, v)
+    plt.scatter(projection[:, 0], projection[:, 1])
+    plt.show()
+
+    # e.
+    print('second pca direction =\n', v[1])
 
 
 def ass1_3_2():
-    pass
+    print('assignment 1.3.2')
+    i = 150
+
+    similarity_measures = ['SMC', 'Jaccard', 'ExtendedJaccard', 'Cosine', 'Correlation']
+
+    X = loadmat('data/wildfaces_grayscale.mat')['X']
+    N, M = X.shape
+
+    not_i = [n for n in range(N) if n != i]
+
+    for measure, transformation in [(3, 'scale'), (2, 'scale'), (4, 'scale'),
+                                    (3, 'translate'), (2, 'translate'), (4, 'translate')]:
+        sim = similarity(X[i, :], X[not_i, :], similarity_measures[measure])
+        scores_original = sim.tolist()[0]
+
+        if transformation == 'scale':
+            transformed = 37*X[i, :]
+            sim = similarity(transformed, X[not_i, :], similarity_measures[measure])
+            scores_transformed = sim.tolist()[0]
+        else:
+            transformed = 37+X[i, :]
+            sim = similarity(transformed, X[not_i, :], similarity_measures[measure])
+            scores_transformed = sim.tolist()[0]
+
+        is_same = True
+        for score1, score2 in zip(scores_original, scores_transformed):
+            if not score1+0.000001 > score2 > score1-0.000001:
+                is_same = False
+                break
+        if is_same:
+            print(similarity_measures[measure] + ' + ' + transformation + ' = True')
+        else:
+            print(similarity_measures[measure] + ' + ' + transformation + ' = False')
 
 
 if __name__ == '__main__':
-    # ass1_1_1()
-    # ass1_1_2()
-    # ass1_2_1()
+    ass1_1_1()
+    ass1_1_2()
+    ass1_2_1()
     ass1_2_2()
+    ass1_3_2()

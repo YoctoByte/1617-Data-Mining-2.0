@@ -1,7 +1,10 @@
-from project.DataCollecting import DataCollecting, Wikipedia
+from project.DataCollecting import DataCollecting, Wikipedia, PubChem
 from project import Paths
+from threading import Thread
+from time import sleep
 import json
 import os
+import random
 import shutil
 
 
@@ -34,7 +37,8 @@ def collect_wikipedia_links():
 if __name__ == '__main__':
     def do_nothing():
         print('Starting data mining project.')
-        # Create all necessary files and directories:
+
+        # Create all necessary files and directories.
         create_files_and_dirs()
         print('Files and directories created.')
 
@@ -52,8 +56,14 @@ if __name__ == '__main__':
         Wikipedia.collect_pages()
         print('Finished Wikipedia page collecting process.')
 
-        # Collect PubChem urls from wikipedia HTML database. Urls are stored in "data/pubchem/urls.csv":
-        # DataCollecting.collect_pubchem_urls()
+        # Parse all wikipedia pages and store database with string values as values.
+        print('Starting page parsing.')
+        Wikipedia.parse_all_pages()
+        print('Finished page parsing.')
+
+    print('Starting collecting PubChem data.')
+    PubChem.collect_pubchem_data()
+    print('Finished collecting PubChem data. Data os stored in ' + Paths.FN_PUBCHEM_DATABASE_RAW)
 
 
     def plz_dont():
@@ -63,8 +73,4 @@ if __name__ == '__main__':
             pubchem_ids.extend(ids)
         DataCollecting.collect_pubchem_data(pubchem_ids)
 
-        with open(Paths.FN_WIKI_DATABASE_RAW) as file:
-            database = json.loads(file.read())
-            for mol in database.values():
-                if 'PubChem' in mol.keys():
-                    print(mol['PubChem'])
+
