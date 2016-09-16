@@ -1,51 +1,52 @@
-from project.DataCollecting import PubChemAPI, Wikipedia
-from threading import Thread
-import os
+from project import Paths
+import json
 
 
-def get_pubchem_ids_from_file():
-    with open(FN_PUBCHEM_URLS) as file:
-        data = dict()
-        for line in file:
-            urls = line.strip().split(',')
-            molecule = urls.pop(0)
-            data[molecule] = list()
-            for url in urls:
-                pubchem_id = url.rsplit('/', 1)[-1]
-                if pubchem_id.isnumeric():
-                    data[molecule].append(pubchem_id)
-        return data
+def initialize_database(verbose=True):
+    final_database = dict()
 
+    # First add the PubChem molecules to the database:
+    with open(Paths.FN_PUBCHEM_DATABASE_RAW) as json_file:
+        pubchem_database = json.loads(json_file.read())
+        if verbose:
+            print('Loaded PubChem database to RAM.')
 
-def collect_pubchem_data(pubchem_id_list):
-    def collecting_thread():
-        while True:
-            try:
-                pubchem_id = pubchem_id_list.pop()
-            except IndexError:
-                break
+    for molecule in pubchem_database.values():
+        for pubchem_page in molecule.values():
+            if 'Canonical SMILES' in pubchem_page:
+                canonical_smiles = pubchem_page['Canonical SMILES']
+                if canonical_smiles not in final_database:
+                    final_database[canonical_smiles] = dict()
+                if 'Isomeric SMILES' in pubchem_page:
+                    isomeric_smiles = pubchem_page['Isomeric SMILES']
+                    final_database[canonical_smiles][isomeric_smiles] = dict()
+                    final_database[canonical_smiles][isomeric_smiles]['__source__'] = 'PubChem'
+                else:
+                    final_database[canonical_smiles][canonical_smiles] = dict()
+                    final_database[canonical_smiles][canonical_smiles]['__source__'] = 'PubChem'
+    if verbose:
+        print('Finished processing PubChem data.')
 
-            try:
-                pubchem_data_obj = PubChemAPI.PubChemPage(pubchem_id)
-                print(pubchem_data_obj.iupac_name())
-                pubchem_data_obj.save()
-            except (KeyError, UnicodeDecodeError):
-                print(pubchem_id + ' DATA NOT COLLECTED!')
+    # Then add the Wikipedia molecules to the database:
+    with open(Paths.FN_WIKI_DATABASE_RAW) as json_file:
+        wikipedia_database = json.loads(json_file.read())
+        if verbose:
+            print('Loaded Wikipedia database to RAM.')
 
-    collectors = list()
-    for _ in range(10):
-        thread = Thread(target=collecting_thread)
-        thread.start()
-        collectors.append(thread)
+    for molecule in wikipedia_database.values():
+        if 'SMILES' in molecule:
+            smiles = molecule['SMILES'][0]
+            if smiles not in final_database:
+                final_database[smiles] = dict()
+            if smiles not in final_database[smiles]:
+                final_database[smiles][smiles] = dict()
+            if '__source__' in final_database[smiles][smiles]:
+                final_database[smiles][smiles]['__source__'] += ', Wikipedia'
+            else:
+                final_database[smiles][smiles]['__source__'] = 'Wikipedia'
+    if verbose:
+        print('Finished processing Wikipedia data.')
 
-    for t in collectors:
-        t.join()
-
-
-if __name__ == '__main__':
-    # wikiparser = WikipediaParser()
-    # wikiparser.run()
-    # get_urls_from_tables('pubchem')
-    # get_pubchem_urls()
-    # download_page('https://pubchem.ncbi.nlm.nih.gov/compound/294764')
-    pass
+    # And finally store the database in a file:
+    with open(Paths.FN_DATABASE_JSON, 'w') as json_file:
+        json_file.write(json.dumps(final_database, separators=(',', ':'), indent=4))

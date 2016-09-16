@@ -1,4 +1,4 @@
-from project.DataCollecting import Wikipedia, PubChem
+from project.DataCollecting import Wikipedia, PubChem, DataCollecting
 from project import Paths
 import os
 import shutil
@@ -10,7 +10,7 @@ def create_files_and_dirs():
             os.mkdir(directory)
     for filename in [Paths.ALL_FILES]:
         if not os.path.exists(filename):
-            open(filename, 'w')
+            open(filename, 'w').close()
 
 
 def collect_wikipedia_links():
@@ -61,9 +61,12 @@ if __name__ == '__main__':
         PubChem.collect_pubchem_data()
         print('Finished collecting PubChem data. Data os stored in ' + Paths.FN_PUBCHEM_DATABASE_RAW)
 
+    print('Going to initialize the final database.')
+    DataCollecting.initialize_database()
+    print('Final database initialized.')
+
     # create final database. This is a dict with smiles as keys.
 
     # parse temperatures from both databases
 
     # merge stuff
-
