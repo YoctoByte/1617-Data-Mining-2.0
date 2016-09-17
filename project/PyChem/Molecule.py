@@ -170,7 +170,11 @@ def _tokenize_smiles(smiles_string):
             if smiles_string[index] in '0123456789':
                 yield '%' + smiles_string[index]
             else:
-                yield smiles_string[index]
+                element_string = smiles_string[index]
+                if index+1 < len(smiles_string) and smiles_string[index+1].islower():
+                    element_string += smiles_string[index+1]
+                    index += 1
+                yield element_string
             index += 1
 
 
@@ -179,10 +183,10 @@ def _parse_smiles_parenthesis(token):
     token = token.replace(' ', '')
 
     isotope = None
-    element = None
+    element = ''
     h_count = None
     charge = None
-    chirality = None
+    chirality = ''
 
     index = 0
     # parse the isotope from the token:
@@ -207,8 +211,6 @@ def _parse_smiles_parenthesis(token):
             index += 1
         if h_count_string:
             h_count = int(h_count_string)
-        else:
-            h_count = 1
     # parse the charge from the token:
     if index < len(token) and token[index] in '-+':
         charge_string = ''

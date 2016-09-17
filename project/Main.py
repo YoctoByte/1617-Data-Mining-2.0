@@ -66,7 +66,7 @@ if __name__ == '__main__':
         DataCollecting.initialize_database()
         print('Final database initialized.')
 
-    ethanol = Molecule(smiles='c1cc1')
+    ethanol = Molecule(smiles='CCC[C@@H](O)CC\C=C\C=C\C#CC#C\C=C\CO')
     for entry in ethanol.bond_table():
         print(entry[0].symbol, entry[1].symbol, entry[2])
 
