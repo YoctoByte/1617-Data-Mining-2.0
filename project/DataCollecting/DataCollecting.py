@@ -1,4 +1,5 @@
 from project import Paths
+from project.PyChem.Molecule import Molecule
 import json
 
 

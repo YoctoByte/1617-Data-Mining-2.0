@@ -116,7 +116,7 @@ class Molecule:
             only_atoms.append(item[0])
         return only_atoms
 
-    def bond_table(self):
+    def bond_table(self, include_bonds=True):
         bond_table = list()
 
         atom_priority_list = self._atom_priority_list()
@@ -139,21 +139,24 @@ class Molecule:
                     other_atoms.append(other_atom)
 
             for other_atom in other_atoms:
-                bond_type = atom.bonds[other_atom]
-                entry = (atom_to_string[atom] + ',' + atom_to_string[other_atom] + ',' + bond_type + '\n')
-                other_entry = (atom_to_string[other_atom] + ',' + atom_to_string[atom] + ',' + bond_type + '\n')
+                bond_string = ''
+                if include_bonds:
+                    bond_type = atom.bonds[other_atom]
+                    bond_string = ',' + bond_type
+                entry = (atom_to_string[atom] + ',' + atom_to_string[other_atom] + bond_string + '\n')
+                other_entry = (atom_to_string[other_atom] + ',' + atom_to_string[atom] + bond_string + '\n')
                 if other_entry not in bond_table:
                     bond_table.append(entry)
         return ''.join(bond_table)
 
     def hash_molecule(self):
         md5 = hashlib.md5()
-        md5.update(self.bond_table().encode('utf-8'))
+        md5.update(self.bond_table(include_bonds=False).encode('utf-8'))
         return codecs.encode(md5.digest(), 'hex')
 
     def hash_isomer(self):
         md5 = hashlib.md5()
-        non_hashed_string = self.bond_table()
+        non_hashed_string = self.bond_table(include_bonds=False)
 
         charges = ''
         chiralities = ''
