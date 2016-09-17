@@ -48,6 +48,7 @@ class Molecule:
     def __init__(self, smiles=None):
         self.atoms = set()
         self.mass = 0
+        self.charge = 0
 
         if smiles:
             _parse_from_smiles(self, smiles)
@@ -69,7 +70,7 @@ class Molecule:
     def _atom_priority_list(self):
         atom_priority_list = list()
 
-        # calculate distance order per atom:
+        # Calculate distance order per atom:
         distance_order = dict()
         for atom in self.atoms:
             distance = 0
@@ -87,9 +88,11 @@ class Molecule:
                 if not next_atoms:
                     break
 
+        # Initiate atom_priority_list:
         for atom in self.atoms:
             atom_priority_list.append([atom, -atom.atomic_number])
 
+        # Build the rest of atom_priority_list:
         distance = 1
         while True:
             go_to_next_iteration = False
@@ -105,12 +108,13 @@ class Molecule:
                 break
             distance += 1
 
+        # Order the list and return only the atoms:
         for i in reversed(range(1, distance+2)):
             atom_priority_list.sort(key=lambda x: x[i])
-        new_priority_list = list()
+        only_atoms = list()
         for item in atom_priority_list:
-            new_priority_list.append(item[0])
-        return new_priority_list
+            only_atoms.append(item[0])
+        return only_atoms
 
     def bond_table(self):
         bond_table = list()
@@ -136,8 +140,8 @@ class Molecule:
 
             for other_atom in other_atoms:
                 bond_type = atom.bonds[other_atom]
-                entry = (atom_to_string[atom] + ',' + atom_to_string[other_atom] + ',' + bond_type + '\n')
-                other_entry = (atom_to_string[other_atom] + ',' + atom_to_string[atom] + ',' + bond_type + '\n')
+                entry = (atom_to_string[atom] + ',' + atom_to_string[other_atom] + '\n')
+                other_entry = (atom_to_string[other_atom] + ',' + atom_to_string[atom] + '\n')
                 if other_entry not in bond_table:
                     bond_table.append(entry)
         return ''.join(bond_table)
