@@ -1,4 +1,5 @@
 from project.DataCollecting import Wikipedia, PubChem, DataCollecting
+from project.PyChem.Molecule import Molecule
 from project import Paths
 import os
 import shutil
@@ -61,9 +62,13 @@ if __name__ == '__main__':
         PubChem.collect_pubchem_data()
         print('Finished collecting PubChem data. Data os stored in ' + Paths.FN_PUBCHEM_DATABASE_RAW)
 
-    print('Going to initialize the final database.')
-    DataCollecting.initialize_database()
-    print('Final database initialized.')
+        print('Going to initialize the final database.')
+        DataCollecting.initialize_database()
+        print('Final database initialized.')
+
+    ethanol = Molecule(smiles='c1cc1')
+    for entry in ethanol.bond_table():
+        print(entry[0].symbol, entry[1].symbol, entry[2])
 
     # create final database. This is a dict with smiles as keys.
 

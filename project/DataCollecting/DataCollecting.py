@@ -14,11 +14,11 @@ def initialize_database(verbose=True):
     for molecule in pubchem_database.values():
         for pubchem_page in molecule.values():
             if 'Canonical SMILES' in pubchem_page:
-                canonical_smiles = pubchem_page['Canonical SMILES']
+                canonical_smiles = pubchem_page['Canonical SMILES'][0]['StringValue']
                 if canonical_smiles not in final_database:
                     final_database[canonical_smiles] = dict()
                 if 'Isomeric SMILES' in pubchem_page:
-                    isomeric_smiles = pubchem_page['Isomeric SMILES']
+                    isomeric_smiles = pubchem_page['Isomeric SMILES'][0]['StringValue']
                     final_database[canonical_smiles][isomeric_smiles] = dict()
                     final_database[canonical_smiles][isomeric_smiles]['__source__'] = 'PubChem'
                 else:
