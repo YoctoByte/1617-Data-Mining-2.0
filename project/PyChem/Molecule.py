@@ -54,6 +54,8 @@ class Molecule:
             _parse_from_smiles(self, smiles)
             self._fill_hydrogen()
 
+        self.atom_priority_list = self._atom_priority_list()
+
     def add_atom(self, atom):
         if atom not in self.atoms:
             self.atoms.add(atom)
@@ -119,7 +121,7 @@ class Molecule:
     def bond_table(self, include_bonds=True):
         bond_table = list()
 
-        atom_priority_list = self._atom_priority_list()
+        atom_priority_list = self.atom_priority_list
 
         atom_numbering = dict()
         atom_to_string = dict()
@@ -160,7 +162,7 @@ class Molecule:
 
         charges = ''
         chiralities = ''
-        for atom in self._atom_priority_list():
+        for atom in self.atom_priority_list:
             charges += str(atom.charge)
 
         non_hashed_string += charges + chiralities
