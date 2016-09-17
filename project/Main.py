@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
     # todo: include aromaticity in bond table
     # todo: include stereo chemistry in hash_isomer
-    ethanol = Molecule(smiles='OCC')
+    ethanol = Molecule(smiles='C([O-])(=O)([O-])')
     print(ethanol.bond_table())
     print(ethanol.hash_molecule())
 

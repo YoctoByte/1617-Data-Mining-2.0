@@ -105,7 +105,7 @@ class Molecule:
                 break
             distance += 1
 
-        for i in reversed(range(1, distance)):
+        for i in reversed(range(1, distance+2)):
             atom_priority_list.sort(key=lambda x: x[i])
         new_priority_list = list()
         for item in atom_priority_list:
