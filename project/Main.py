@@ -66,7 +66,6 @@ if __name__ == '__main__':
         DataCollecting.initialize_database()
         print('Final database initialized.')
 
-    # todo: include aromaticity in bond table
     # todo: include stereo chemistry in hash_isomer
     ethanol = Molecule(smiles='C([O-])(=O)([O-])')
     print(ethanol.bond_table())
