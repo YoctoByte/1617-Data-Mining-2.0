@@ -1,4 +1,6 @@
 import json
+import hashlib
+import codecs
 
 
 def _load_data():
@@ -64,16 +66,89 @@ class Molecule:
                     atom1.adjacent_atoms.add(atom2)
                     atom1.bonds[atom2] = bond_type
 
+    def _atom_priority_list(self):
+        atom_priority_list = list()
+
+        # calculate distance order per atom:
+        distance_order = dict()
+        for atom in self.atoms:
+            distance = 0
+            distance_order[atom] = {distance: {atom}}
+            used_atoms = {atom}
+            while True:
+                next_atoms = set()
+                for other_atom in distance_order[atom][distance]:
+                    for adjacent_atom in other_atom.adjacent_atoms:
+                        if adjacent_atom not in used_atoms:
+                            next_atoms.add(adjacent_atom)
+                            used_atoms.add(adjacent_atom)
+                distance += 1
+                distance_order[atom][distance] = next_atoms
+                if not next_atoms:
+                    break
+
+        for atom in self.atoms:
+            atom_priority_list.append([atom, -atom.atomic_number])
+
+        distance = 1
+        while True:
+            go_to_next_iteration = False
+            for item in atom_priority_list:
+                atom = item[0]
+                distance_score = 0
+                if distance in distance_order[atom]:
+                    go_to_next_iteration = True
+                    for other_atom in distance_order[atom][distance]:
+                        distance_score -= other_atom.atomic_number
+                item.append(distance_score)
+            if not go_to_next_iteration:
+                break
+            distance += 1
+
+        for i in reversed(range(1, distance)):
+            atom_priority_list.sort(key=lambda x: x[i])
+        new_priority_list = list()
+        for item in atom_priority_list:
+            new_priority_list.append(item[0])
+        return new_priority_list
+
     def bond_table(self):
         bond_table = list()
-        for atom in self.atoms:
-            for other_atom in atom.bonds:
+
+        atom_priority_list = self._atom_priority_list()
+
+        atom_numbering = dict()
+        atom_to_string = dict()
+        for atom in atom_priority_list:
+            atom_to_string[atom] = atom.symbol
+            if atom.symbol not in atom_numbering:
+                atom_numbering[atom.symbol] = 0
+            atom_numbering[atom.symbol] += 1
+            atom_to_string[atom] += str(atom_numbering[atom.symbol])
+
+        for atom in atom_priority_list:
+            # sort the other_atom variable based on priority:
+            adjacent_atoms = atom.bonds
+            other_atoms = list()
+            for other_atom in atom_priority_list:
+                if other_atom in adjacent_atoms:
+                    other_atoms.append(other_atom)
+
+            for other_atom in other_atoms:
                 bond_type = atom.bonds[other_atom]
-                entry = (atom, other_atom, bond_type)
-                other_entry = (other_atom, atom, bond_type)
+                entry = (atom_to_string[atom] + ',' + atom_to_string[other_atom] + ',' + bond_type + '\n')
+                other_entry = (atom_to_string[other_atom] + ',' + atom_to_string[atom] + ',' + bond_type + '\n')
                 if other_entry not in bond_table:
                     bond_table.append(entry)
-        return bond_table
+        return ''.join(bond_table)
+
+    def hash_molecule(self):
+        md5 = hashlib.md5()
+        md5.update(self.bond_table().encode('utf-8'))
+        return codecs.encode(md5.digest(), 'hex')
+
+    def hash_isomer(self):
+        pass
 
     def _fill_hydrogen(self):
         bond_electrons = {'-': 1, '=': 2, '#': 3, '$': 4, ':': 1}
