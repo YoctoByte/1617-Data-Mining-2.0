@@ -139,7 +139,6 @@ class Molecule:
                     other_atoms.append(other_atom)
 
             for other_atom in other_atoms:
-                bond_type = atom.bonds[other_atom]
                 entry = (atom_to_string[atom] + ',' + atom_to_string[other_atom] + '\n')
                 other_entry = (atom_to_string[other_atom] + ',' + atom_to_string[atom] + '\n')
                 if other_entry not in bond_table:
