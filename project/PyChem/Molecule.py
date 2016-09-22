@@ -22,7 +22,7 @@ ELEMENTS_DATA = _load_data()
 
 
 class Atom:
-    def __init__(self, element, isotope=None, charge=None, aromatic=None):
+    def __init__(self, element, isotope=None, charge=None, aromatic=None, isomer=None):
         try:
             element_data = ELEMENTS_DATA[element]
         except IndexError:
@@ -31,6 +31,7 @@ class Atom:
         self.isotope = isotope
         self.charge = charge
         self.aromatic = aromatic
+        self.isomer = isomer
 
         self.symbol = element_data['element']
         self.element = element_data['element name']
@@ -42,6 +43,9 @@ class Atom:
 
         self.adjacent_atoms = set()
         self.bonds = dict()
+
+    def calculate_isomere_stuff(self, priority_list):
+        pass
 
 
 class Molecule:
@@ -55,6 +59,8 @@ class Molecule:
             self._fill_hydrogen()
 
         self.atom_priority_list = self._atom_priority_list()
+        for atom in self.atoms:
+            atom.calculate_isomere_stuff(self.atom_priority_list)
 
     def add_atom(self, atom):
         if atom not in self.atoms:
